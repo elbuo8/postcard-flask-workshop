@@ -1,0 +1,65 @@
+<html>
+  <head>
+    <title>PostCardap</title>
+  </head>
+  <body>
+    {% if editor %}
+      <div id='postcard'>
+        {% if post and post.image %}
+          <img src='{{post.image}}'>
+        {% endif %}
+      </div>
+      <button id='save'>Save PostCard</button>
+      <button id='send'>Send PostCard</button>
+    {% else %}
+      <img src='{{image}}'>
+    {% endif %}
+
+    {% if editor %}
+      <script type='text/javascript' src='/static/js/filepicker.js'></script>
+      <script type='text/javascript' src='/static/js/aviary.js'></script>
+      <script type='text/javascript'>
+        filepicker.setKey('Arsf53GD8SbClNKJbB1cXz');
+
+        var featherEditor = new Aviary.Feather({
+          apiKey: '3a1b807779b06af6',
+          apiVersion: 3,
+          onSave: function(imageID, newURL) {
+            var img = document.getElementById(imageID);
+            img.src = newURL;
+          }
+        });
+
+        (function(filepicker) {
+          var postcard = document.getElementById('postcard');
+          if (!postcard.getElementsByTagName('img').length) {
+            filepicker.pick({services:['IMAGE_SEARCH', 'COMPUTER', 'WEBCAM']}, function(InkBlob) {
+              var img = document.createElement('img');
+              img.setAttribute('src', InkBlob.url);
+              img.setAttribute('id', Math.random().toString(36).substring(7));
+              img.addEventListener('click', function () {
+                featherEditor.launch({
+                  url: img.getAttribute('src'),
+                  image: img.getAttribute('id')
+                });
+              });
+            postcard.appendChild(img);
+            });
+          }
+        })(window.filepicker);
+
+        document.getElementById('save').onclick = function () {
+          var image = document.getElementById('postcard').getElementsByTagName('img');
+          var payload = {
+            ID: document.location.pathname.split('/')[2],
+            image: image[0].src
+          };
+          var http = new XMLHttpRequest();
+          http.open('PUT', '/edit/' + payload.ID, false);
+          http.setRequestHeader('Content-type', 'application/json');
+          http.send(JSON.stringify(payload));
+        };
+      </script>
+    {% endif %}
+  </body>
+<html>
